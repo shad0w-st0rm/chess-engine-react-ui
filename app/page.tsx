@@ -17,6 +17,7 @@ export default function ChessEngineGame() {
   // Board state
   const [boardOrientation, setBoardOrientation] = useState("white");
   const [playerColor, setPlayerColor] = useState("white");
+  const [boardSize, setBoardSize] = useState(400);
 
   // Time control state
   const [timeControl, setTimeControl] = useState("3");
@@ -36,6 +37,43 @@ export default function ChessEngineGame() {
   // Initialize game on mount
   useEffect(() => {
     getNewGame();
+  }, []);
+
+  useEffect(() => {
+    const updateBoardSize = () => {
+      // Calculate the maximum board size while maintaining some padding
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+
+      // Estimate the height of controls (this is a rough estimate)
+      // Adjust these values based on actual measurements if needed
+      const topControlsHeight = 100; // Buttons at top
+      const bottomControlsHeight = 250; // Time controls, FEN input, etc.
+      const verticalPadding = 40; // Additional screen padding
+
+      // Calculate available height for the board
+      const availableHeight = windowHeight - 
+        (topControlsHeight + bottomControlsHeight + verticalPadding);
+
+      // Calculate board size based on both width and height constraints
+      const widthBasedSize = windowWidth * 0.8;
+      const heightBasedSize = availableHeight * 0.9; // Slightly less to ensure some padding
+
+      // Choose the smaller dimension
+      const maxSize = Math.min(widthBasedSize, heightBasedSize);
+      
+      // Ensure board size is a multiple of 8 for pixel-perfect rendering
+      const boardDimension = Math.floor(maxSize / 8) * 8;
+      
+      // Set a minimum size
+      setBoardSize(Math.max(boardDimension, 300)); // Minimum size of 300px
+    };
+
+    // Update size on mount and resize
+    updateBoardSize();
+    window.addEventListener('resize', updateBoardSize);
+    
+    return () => window.removeEventListener('resize', updateBoardSize);
   }, []);
 
   // Update refs
@@ -422,24 +460,27 @@ export default function ChessEngineGame() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="w-full max-w-md space-y-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4 space-y-4">
+      <div 
+        className="bg-white shadow-lg rounded-lg p-6 space-y-4"
+        style={{ width: boardSize + 48}}  // Force container to match board width
+      >
         {/* Top Controls */}
         <div className="flex justify-between space-x-2">
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
             onClick={handlePlayAsWhite}
           >
             Play as White
           </button>
           <button
-            className="bg-green-500 text-white px-4 py-2 rounded"
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
             onClick={handleNewGame}
           >
             New Game
           </button>
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
             onClick={handlePlayAsBlack}
           >
             Play as Black
@@ -448,30 +489,30 @@ export default function ChessEngineGame() {
 
         <div className="flex justify-between space-x-2">
           <button
-            className="bg-gray-500 text-white px-4 py-2 rounded"
+            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors"
             onClick={handleFlipBoard}
           >
             Flip Board
           </button>
           <button
-            className="bg-red-500 text-white px-4 py-2 rounded"
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors"
             onClick={handleResign}
           >
             Resign
           </button>
         </div>
 
-        {/* Clocks */}
+        {/* Clocks and Board Container */}
         <div className="space-y-2">
           {/* Top Clock */}
-          <div className="flex justify-between items-center bg-gray-200 p-2 rounded">
-            <span className="font-bold">
-              {boardOrientation === "white" ? "Black" : "White"}
+          <div className="flex justify-between items-center bg-gray-100 p-3 rounded-md shadow-inner">
+            <span className="font-semibold text-gray-700">
+              {boardOrientation === "white" ? "Black" : "White"} Clock
             </span>
             <span
-              className={`font-mono ${activeColor === (boardOrientation === "white" ? "b" : "w") && isClockRunning
+              className={`font-mono text-lg ${activeColor === (boardOrientation === "white" ? "b" : "w") && isClockRunning
                   ? 'text-blue-600 font-bold'
-                  : ''
+                  : 'text-gray-700'
                 } ${(boardOrientation === "white" ? blackTime : whiteTime) < 30
                   ? 'text-red-500 font-bold'
                   : ''
@@ -486,20 +527,20 @@ export default function ChessEngineGame() {
             <Chessboard
               position={game.fen()}
               onPieceDrop={onDrop}
-              boardWidth={400}
-              boardOrientation={boardOrientation == "white" ? "white" : "black"}
+              boardWidth={boardSize}
+              boardOrientation={boardOrientation === "white" ? "white" : "black"}
             />
           </div>
 
           {/* Bottom Clock */}
-          <div className="flex justify-between items-center bg-gray-200 p-2 rounded">
-            <span className="font-bold">
-              {boardOrientation === "white" ? "White" : "Black"}
+          <div className="flex justify-between items-center bg-gray-100 p-3 rounded-md shadow-inner">
+            <span className="font-semibold text-gray-700">
+              {boardOrientation === "white" ? "White" : "Black"} Clock
             </span>
             <span
-              className={`font-mono ${activeColor === (boardOrientation === "white" ? "w" : "b") && isClockRunning
+              className={`font-mono text-lg ${activeColor === (boardOrientation === "white" ? "w" : "b") && isClockRunning
                   ? 'text-blue-600 font-bold'
-                  : ''
+                  : 'text-gray-700'
                 } ${(boardOrientation === "white" ? whiteTime : blackTime) < 30
                   ? 'text-red-500 font-bold'
                   : ''
@@ -511,24 +552,26 @@ export default function ChessEngineGame() {
         </div>
 
         {/* Time Control Inputs */}
-        <div className="flex space-x-4">
-          <div className="flex-1">
-            <label className="block mb-2">Time (minutes)</label>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block mb-2 text-sm font-medium text-gray-700">Time (minutes)</label>
             <input
               type="number"
               value={timeControl}
               onChange={(e) => handleTimeControlChange(e.target.value)}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none 
+                         placeholder-gray-500 text-black"
               placeholder="Time in minutes"
             />
           </div>
-          <div className="flex-1">
-            <label className="block mb-2">Increment (seconds)</label>
+          <div>
+            <label className="block mb-2 text-sm font-medium text-gray-700">Increment (seconds)</label>
             <input
               type="number"
               value={increment}
               onChange={(e) => handleIncrementChange(e.target.value)}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none 
+                         placeholder-gray-500 text-black"
               placeholder="Increment in seconds"
             />
           </div>
@@ -540,12 +583,13 @@ export default function ChessEngineGame() {
             type="text"
             value={fenInput}
             onChange={(e) => setFenInput(e.target.value)}
-            className="flex-1 p-2 border rounded"
+            className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:outline-none 
+                       placeholder-gray-500 text-black"
             placeholder="Enter FEN String"
           />
           <button
             onClick={handleLoadPosition}
-            className="bg-purple-500 text-white px-4 py-2 rounded"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md transition-colors"
           >
             Load
           </button>
