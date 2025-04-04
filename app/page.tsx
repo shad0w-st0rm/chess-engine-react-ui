@@ -168,7 +168,7 @@ export default function ChessEngineGame() {
 
   const endGame = async () => {
     try {
-      const response = await fetch(`${serverURL}/endgame/?playerID=${playerIDRef.current}`);
+      const response = await fetch(`${serverURL}/endgame?playerID=${playerIDRef.current}`);
       if (response.ok) {
         console.log(response.text());
       }
