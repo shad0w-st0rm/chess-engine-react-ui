@@ -17,6 +17,11 @@ export const metadata: Metadata = {
   description: "Play against my Chess Engine, coded in Java!",
 };
 
+// Add this to prioritize script loading
+export const viewport = {
+  themeColor: 'white',
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
